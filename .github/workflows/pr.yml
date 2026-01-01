@@ -149,8 +149,8 @@ jobs:
         mkdir -p bin/release-x64
         
         # Find the binary and copy it to where quick.make expects it
-        DUMP_BIN=$(find bin -type f -name otfccdump | head -n 1)
-        BUILD_BIN=$(find bin -type f -name otfccbuild | head -n 1)
+        DUMP_BIN=$(find bin -type f -name otfccdump -not -path "*.dSYM*" | head -n 1)
+        BUILD_BIN=$(find bin -type f -name otfccbuild -not -path "*.dSYM*" | head -n 1)
         
         echo "Found dump bin: $DUMP_BIN"
         echo "Found build bin: $BUILD_BIN"
