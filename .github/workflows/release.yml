@@ -15,14 +15,14 @@ jobs:
           - os: linux
             arch: x64
             runner: ubuntu-latest
-            config: release_x64
+            config: release-x64
             artifact_name: otfcc-linux-x64
             asset_suffix: linux-x64
             
           - os: linux
             arch: arm64
             runner: ubuntu-latest
-            config: release_arm64
+            config: release-arm64
             artifact_name: otfcc-linux-arm64
             asset_suffix: linux-arm64
             cross_compile: true
