@@ -23,9 +23,10 @@ endif
 # If running under Git Bash/MSYS, OS might be Windows_NT but uname might differ.
 # Let's rely on detection or just use standard override.
 
-# Simplified:
-OTFCCDUMP = $(OTFCCDUMP)$(EXE)
-OTFCCBUILD = $(OTFCCBUILD)$(EXE)
+BIN_DIR ?= bin/release-x64
+
+OTFCCDUMP = $(BIN_DIR)/otfccdump$(EXE)
+OTFCCBUILD = $(BIN_DIR)/otfccbuild$(EXE)
 
 mf-vs2017 :
 	@$(PREMAKE5) vs2017
