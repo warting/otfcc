@@ -180,7 +180,7 @@ jobs:
     - name: Build
       run: |
         .\dep\bin-win\premake5.exe vs2017
-        msbuild build\vs\otfcc.sln /m /p:Configuration=Release /p:Platform=${{ matrix.platform }}
+        msbuild build\vs\otfcc.sln /m /p:Configuration=Release /p:Platform=${{ matrix.platform }} /p:PlatformToolset=v143
 
     - name: Run Tests
       shell: bash
