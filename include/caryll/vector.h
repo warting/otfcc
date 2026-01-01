@@ -17,7 +17,7 @@
 	}
 #define caryll_VectorInterfaceTypeName(__TV) const struct __caryll_vectorinterface_##__TV
 #define caryll_VectorInterfaceTrait(__TV, __T)                                                     \
-	caryll_RT(__TV);                                                                               \
+	caryll_RT(__TV)                                                                                \
 	void (*initN)(MODIFY __TV * arr, size_t n);                                                    \
 	void (*initCapN)(MODIFY __TV * arr, size_t n);                                                 \
 	__TV *(*createN)(size_t n);                                                                    \

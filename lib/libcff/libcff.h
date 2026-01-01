@@ -134,7 +134,7 @@ uint8_t cff_getStandardArity(uint32_t op);
 sds sdsget_cff_sid(uint16_t idx, cff_Index str);
 
 extern uint32_t cff_decodeCffToken(const uint8_t *start, cff_Value *val);
-extern uint32_t cff_decodeCS2Token(const uint8_t *start, cff_Value *val);
+extern uint32_t cff_decodeCS2Token(const uint8_t *start, uint32_t limit, cff_Value *val);
 
 // number, number, float
 extern caryll_Buffer *cff_encodeCffOperator(int32_t val);

@@ -18,26 +18,26 @@
 	void (*copyReplace)(MODIFY T *, const T);
 
 #define caryll_VT(T)                                                                               \
-	caryll_T(T);                                                                                   \
+	caryll_T(T)                                                                                    \
 	T (*empty)();                                                                                  \
 	T (*dup)(const T);
 #define caryll_RT(T)                                                                               \
-	caryll_T(T);                                                                                   \
+	caryll_T(T)                                                                                    \
 	T *(*create)();                                                                                \
 	void (*free)(MOVE T *);
 
 #define caryll_ElementInterfaceOf(T) const struct __caryll_elementinterface_##T
 #define caryll_ElementInterface(T)                                                                 \
 	caryll_ElementInterfaceOf(T) {                                                                 \
-		caryll_T(T);                                                                               \
+		caryll_T(T)                                                                                \
 	}
 #define caryll_RefElementInterface(T)                                                              \
 	caryll_ElementInterfaceOf(T) {                                                                 \
-		caryll_RT(T);                                                                              \
+		caryll_RT(T)                                                                               \
 	}
 #define caryll_ValElementInterface(T)                                                              \
 	caryll_ElementInterfaceOf(T) {                                                                 \
-		caryll_VT(T);                                                                              \
+		caryll_VT(T)                                                                               \
 	}
 
 /// Individual traits

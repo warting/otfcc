@@ -110,8 +110,9 @@ caryll_Buffer *cff_encodeCffFloat(double val) {
 	return blob;
 }
 
-uint32_t cff_decodeCS2Token(const uint8_t *start, cff_Value *val) {
+uint32_t cff_decodeCS2Token(const uint8_t *start, uint32_t limit, cff_Value *val) {
 	uint32_t advance = 0;
+	if (limit == 0) return 0;
 
 	if (*start <= 27) {
 		val->t = CS2_OPERATOR;
@@ -120,6 +121,7 @@ uint32_t cff_decodeCS2Token(const uint8_t *start, cff_Value *val) {
 			val->i = *start;
 			advance = 1;
 		} else if (*start == 12) {
+			if (limit < 2) return 0;
 			val->i = *start << 8 | *(start + 1);
 			advance = 2;
 		} else if (*start >= 13 && *start <= 18) {
@@ -133,6 +135,7 @@ uint32_t cff_decodeCS2Token(const uint8_t *start, cff_Value *val) {
 			advance = 1;
 		}
 	} else if (*start == 28) {
+		if (limit < 3) return 0;
 		val->t = CS2_OPERAND;
 		val->i = (int16_t)(*(start + 1) << 8 | *(start + 2));
 		advance = 3;
@@ -146,13 +149,16 @@ uint32_t cff_decodeCS2Token(const uint8_t *start, cff_Value *val) {
 			val->i = (int32_t)(*start - 139);
 			advance = 1;
 		} else if (*start >= 247 && *start <= 250) {
+			if (limit < 2) return 0;
 			val->i = (int32_t)((*start - 247) * 256 + *(start + 1) + 108);
 			advance = 2;
 		} else if (*start >= 251 && *start <= 254) {
+			if (limit < 2) return 0;
 			val->i = (int32_t)(-((*start - 251) * 256) - *(start + 1) - 108);
 			advance = 2;
 		}
 	} else if (*start == 255) {
+		if (limit < 5) return 0;
 		val->t = CS2_FRACTION;
 		int16_t integerPart = start[1] << 8 | start[2];
 		uint16_t fractionPart = start[3] << 8 | start[4];

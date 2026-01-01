@@ -368,7 +368,8 @@ void cff_parseOutline(uint8_t *data, uint32_t len, cff_Index gsubr, cff_Index ls
 	if (!getrand) getrand = callback_nopgetrand;
 
 	while (start < data + len) {
-		advance = cff_decodeCS2Token(start, &val);
+		advance = cff_decodeCS2Token(start, (uint32_t)(data + len - start), &val);
+		if (advance == 0) break;
 
 		switch (val.t) {
 			case CS2_OPERATOR:
