@@ -42,67 +42,36 @@ jobs:
       with:
         node-version: '20'
 
-    - name: Build (x64)
+    - name: Build and Test (x64)
       if: matrix.arch == 'x64'
       run: |
         chmod +x dep/bin-linux/premake5
         ./dep/bin-linux/premake5 gmake
         cd build/gmake
         make config=${{ matrix.config }}
+        
+        # Test setup
+        cd ../..
+        BIN_CONFIG=$(echo "${{ matrix.config }}" | sed 's/_/-/')
+        mkdir -p bin/release-x64
+        cp bin/$BIN_CONFIG/otfccdump bin/release-x64/otfccdump
+        cp bin/$BIN_CONFIG/otfccbuild bin/release-x64/otfccbuild
+        chmod +x bin/release-x64/otfccdump bin/release-x64/otfccbuild
+        ./bin/release-x64/otfccdump --version
+        make -f quick.make test
 
-    - name: Build (ARM64)
+    - name: Build and Test (ARM64 via Docker)
       if: matrix.arch == 'arm64'
       run: |
+        # Generate Makefiles on host (using x64 premake5)
         chmod +x dep/bin-linux/premake5
-        # Configure premake for cross-compilation if needed, or rely on env vars
-        # Since premake5.lua generates standard makefiles, we can override CC/CXX
         ./dep/bin-linux/premake5 gmake
-        cd build/gmake
-        # Force the compiler to be the cross-compiler
-        make config=${{ matrix.config }} CC=aarch64-linux-gnu-gcc CXX=aarch64-linux-gnu-g++ AR=aarch64-linux-gnu-ar
-
-    - name: Run Tests
-      # Tests rely on binaries in bin/release-x64 or bin/release-arm64
-      # We need to map the architecture to the folder name used by quick.make/Makefile
-      run: |
-        # Quick check of what was built
-        ls -R bin
         
-        # We need to adapt the test command because quick.make hardcodes 'bin/release-x64/otfccdump' in many places.
-        # We will create symlinks or use a modified test command.
+        # Build Docker image (builds binary inside ARM64 container)
+        docker build -t otfcc-test -f Dockerfile.arm64 .
         
-        # The quick.make file has hardcoded paths like 'bin/release-x64/otfccdump' in the test targets.
-        # See: $(TEST_OPCODES_TARGETS) : ... @bin/release-x64/otfccdump ...
-        
-        # Workaround: Symlink the built binary to the expected location if it differs
-        # Or, ideally, use the correct binary.
-        
-        # Convert config (release_x64) to directory name (release-x64)
-        BIN_CONFIG=$(echo "${{ matrix.config }}" | sed 's/_/-/')
-        
-        BIN_DIR="bin/$BIN_CONFIG"
-        # Normalize path separators if needed (linux uses /)
-        
-        # If we are on ARM64, quick.make's hardcoded paths will fail. 
-        # We should patch quick.make or run commands manually.
-        # For simplicity in this PR workflow, let's just try running one simple test manually to verify the binary works.
-        # Or better, let's fix quick.make to be generic, but I shouldn't modify the repo files too much unless asked.
-        # Wait, I previously modified quick.make to add linux-release-arm64, but the TEST targets in quick.make still reference release-x64.
-        
-        # Let's see if we can trick it by symlinking.
-        mkdir -p bin/release-x64
-        if [ "${{ matrix.arch }}" != "x64" ]; then
-           cp bin/$BIN_CONFIG/otfccdump bin/release-x64/otfccdump
-           cp bin/$BIN_CONFIG/otfccbuild bin/release-x64/otfccbuild
-        fi
-        
-        chmod +x bin/release-x64/otfccdump bin/release-x64/otfccbuild
-        
-        # Verify binary execution (via QEMU for arm64)
-        ./bin/release-x64/otfccdump --version
-        
-        # Run the full test suite
-        make -f quick.make test
+        # Run Tests inside Docker
+        docker run --rm otfcc-test
 
   # macOS Builds and Tests
   test-macos:
