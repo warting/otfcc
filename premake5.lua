@@ -49,7 +49,7 @@ end
 workspace "otfcc"
 	configurations { "release", "debug" }
 	
-	platforms { "x64", "x86" }
+	platforms { "x64", "x86", "arm64" }
 	filter "action:xcode4"
 		platforms { "x64" }
 	filter {}
@@ -67,6 +67,8 @@ workspace "otfcc"
 		architecture "x86"
 	filter "platforms:x64"
 		architecture "x64"
+	filter "platforms:arm64"
+		
 	filter {}
 	
 	filter "action:vs2017"

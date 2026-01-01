@@ -35,6 +35,10 @@ linux-release-x64 : mf-ninja-linux
 	@cd build/ninja && $(NINJA_EXEC) otfccdump_release_x64 otfccbuild_release_x64 otfccdll_release_x64
 linux-release-x86 : mf-ninja-linux
 	@cd build/ninja && $(NINJA_EXEC) otfccdump_release_x86 otfccbuild_release_x86 otfccdll_release_x86
+linux-debug-arm64 : mf-ninja-linux
+	@cd build/ninja && $(NINJA_EXEC) otfccdump_debug_arm64 otfccbuild_debug_arm64 otfccdll_debug_arm64
+linux-release-arm64 : mf-ninja-linux
+	@cd build/ninja && $(NINJA_EXEC) otfccdump_release_arm64 otfccbuild_release_arm64 otfccdll_release_arm64
 
 macosx-debug-x64 : mf-ninja-macosx
 	@cd build/ninja && $(NINJA_EXEC) otfccdump_debug_x64 otfccbuild_debug_x64 otfccdll_debug_x64

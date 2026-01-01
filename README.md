@@ -131,6 +131,13 @@ cd build/gmake
 make config=release_x64
 ```
 
+For ARM64 machines:
+```bash
+premake5 gmake
+cd build/gmake
+make config=release_arm64
+```
+
 If you have [Ninja](https://ninja-build.org/) installed on your system, you can use ninja either:
 
 ```bash
