@@ -89,8 +89,8 @@ jobs:
         # Let's see if we can trick it by symlinking.
         mkdir -p bin/release-x64
         if [ "${{ matrix.arch }}" != "x64" ]; then
-           cp bin/arm64/release/otfccdump bin/release-x64/otfccdump
-           cp bin/arm64/release/otfccbuild bin/release-x64/otfccbuild
+           cp bin/${{ matrix.config }}/otfccdump bin/release-x64/otfccdump
+           cp bin/${{ matrix.config }}/otfccbuild bin/release-x64/otfccbuild
         fi
         
         # Verify binary execution (via QEMU for arm64)
