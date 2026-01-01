@@ -1,0 +1,206 @@
+name: PR
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  # Linux Builds and Tests
+  test-linux:
+    name: Linux (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-latest
+            config: release_x64
+          - arch: arm64
+            runner: ubuntu-latest
+            config: release_arm64
+            use_qemu: true
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up QEMU
+      if: matrix.use_qemu
+      uses: docker/setup-qemu-action@v3
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential
+
+    - name: Install gcc-aarch64-linux-gnu
+      if: matrix.arch == 'arm64'
+      run: sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Build (x64)
+      if: matrix.arch == 'x64'
+      run: |
+        chmod +x dep/bin-linux/premake5
+        ./dep/bin-linux/premake5 gmake
+        cd build/gmake
+        make config=${{ matrix.config }}
+
+    - name: Build (ARM64)
+      if: matrix.arch == 'arm64'
+      run: |
+        chmod +x dep/bin-linux/premake5
+        # Configure premake for cross-compilation if needed, or rely on env vars
+        # Since premake5.lua generates standard makefiles, we can override CC/CXX
+        ./dep/bin-linux/premake5 gmake
+        cd build/gmake
+        # Force the compiler to be the cross-compiler
+        make config=${{ matrix.config }} CC=aarch64-linux-gnu-gcc CXX=aarch64-linux-gnu-g++ AR=aarch64-linux-gnu-ar
+
+    - name: Run Tests
+      # Tests rely on binaries in bin/release-x64 or bin/release-arm64
+      # We need to map the architecture to the folder name used by quick.make/Makefile
+      run: |
+        # Quick check of what was built
+        ls -R bin
+        
+        # We need to adapt the test command because quick.make hardcodes 'bin/release-x64/otfccdump' in many places.
+        # We will create symlinks or use a modified test command.
+        
+        # The quick.make file has hardcoded paths like 'bin/release-x64/otfccdump' in the test targets.
+        # See: $(TEST_OPCODES_TARGETS) : ... @bin/release-x64/otfccdump ...
+        
+        # Workaround: Symlink the built binary to the expected location if it differs
+        # Or, ideally, use the correct binary.
+        
+        BIN_DIR="bin/${{ matrix.config }}"
+        # Normalize path separators if needed (linux uses /)
+        
+        # If we are on ARM64, quick.make's hardcoded paths will fail. 
+        # We should patch quick.make or run commands manually.
+        # For simplicity in this PR workflow, let's just try running one simple test manually to verify the binary works.
+        # Or better, let's fix quick.make to be generic, but I shouldn't modify the repo files too much unless asked.
+        # Wait, I previously modified quick.make to add linux-release-arm64, but the TEST targets in quick.make still reference release-x64.
+        
+        # Let's see if we can trick it by symlinking.
+        mkdir -p bin/release-x64
+        if [ "${{ matrix.arch }}" != "x64" ]; then
+           cp bin/arm64/release/otfccdump bin/release-x64/otfccdump
+           cp bin/arm64/release/otfccbuild bin/release-x64/otfccbuild
+        fi
+        
+        # Verify binary execution (via QEMU for arm64)
+        ./bin/release-x64/otfccdump --version
+        
+        # Run the full test suite
+        make -f quick.make test
+
+  # macOS Builds and Tests
+  test-macos:
+    name: macOS (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: macos-13 # Intel
+            premake_cmd: ./dep/bin-osx/premake5 xcode4
+          - arch: arm64
+            runner: macos-14 # Apple Silicon
+            premake_cmd: ./dep/bin-osx/premake5 xcode4
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Build
+      run: |
+        chmod +x dep/bin-osx/premake5
+        ${{ matrix.premake_cmd }}
+        xcodebuild -workspace build/xcode/otfcc.xcworkspace -scheme otfccbuild -configuration Release
+        xcodebuild -workspace build/xcode/otfcc.xcworkspace -scheme otfccdump -configuration Release
+
+    - name: Run Tests
+      run: |
+        # xcodebuild output goes to build/xcode/Release/ (derived data?) or bin/ ?
+        # premake5.lua says targetdir "bin/%{cfg.buildcfg}-%{cfg.platform}"
+        # For Xcode, it might differ. Let's find where it is.
+        # Usually premake xcode generator puts output in build/xcode/Release/ or similar? 
+        # Actually premake5.lua sets targetdir explicitly. 
+        # On xcode4 action, 'cfg.platform' might be x64 even on arm64 unless configured.
+        
+        find bin -type f -name "otfccdump"
+        
+        # Align with quick.make expectations for testing
+        mkdir -p bin/release-x64
+        
+        # Find the binary and copy it to where quick.make expects it
+        # Assuming finding one is enough
+        DUMP_BIN=$(find bin -name otfccdump | head -n 1)
+        BUILD_BIN=$(find bin -name otfccbuild | head -n 1)
+        
+        cp "$DUMP_BIN" bin/release-x64/otfccdump
+        cp "$BUILD_BIN" bin/release-x64/otfccbuild
+        
+        make -f quick.make test
+
+  # Windows Builds and Tests
+  test-windows:
+    name: Windows (${{ matrix.arch }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            platform: x64
+          - arch: x86
+            platform: Win32
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Build
+      run: |
+        .\dep\bin-win\premake5.exe vs2017
+        msbuild build\vs\otfcc.sln /m /p:Configuration=Release /p:Platform=${{ matrix.platform }}
+
+    - name: Run Tests
+      shell: bash
+      run: |
+        # Locate binaries
+        # VS build output usually goes to build/vs/Release/ or similar depending on premake
+        # premake5.lua targetdir is bin/%{cfg.buildcfg}-%{cfg.platform}
+        # For windows x64: bin/release-x64
+        # For windows x86: bin/release-x86
+        
+        # quick.make expects bin/release-x64/otfccdump for tests.
+        
+        mkdir -p bin/release-x64
+        
+        if [ "${{ matrix.arch }}" == "x86" ]; then
+           cp bin/release-x86/otfccdump.exe bin/release-x64/otfccdump.exe
+           cp bin/release-x86/otfccbuild.exe bin/release-x64/otfccbuild.exe
+        fi
+        
+        # On windows, make -f quick.make test might fail if 'make' is not standard or if paths are weird.
+        # Git bash has make.
+        
+        make -f quick.make test
