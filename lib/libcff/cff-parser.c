@@ -341,7 +341,8 @@ static double callback_nopgetrand(void *context) {
 // CFF charastring parser
 void cff_parseOutline(uint8_t *data, uint32_t len, cff_Index gsubr, cff_Index lsubr,
                       cff_Stack *stack, void *outline, cff_IOutlineBuilder methods,
-                      const otfcc_Options *options) {
+                      const otfcc_Options *options, uint32_t depth) {
+	if (depth > 64) return;
 	uint16_t gsubr_bias = compute_subr_bias(gsubr.count);
 	uint16_t lsubr_bias = compute_subr_bias(lsubr.count);
 	uint8_t *start = data;
@@ -816,7 +817,7 @@ void cff_parseOutline(uint8_t *data, uint32_t len, cff_Index gsubr, cff_Index ls
 						cff_parseOutline(lsubr.data + lsubr.offset[lsubr_bias + subr] - 1,
 						                 lsubr.offset[lsubr_bias + subr + 1] -
 						                     lsubr.offset[lsubr_bias + subr],
-						                 gsubr, lsubr, stack, outline, methods, options);
+						                 gsubr, lsubr, stack, outline, methods, options, depth + 1);
 						break;
 					}
 					case op_callgsubr: {
@@ -825,7 +826,7 @@ void cff_parseOutline(uint8_t *data, uint32_t len, cff_Index gsubr, cff_Index ls
 						cff_parseOutline(gsubr.data + gsubr.offset[gsubr_bias + subr] - 1,
 						                 gsubr.offset[gsubr_bias + subr + 1] -
 						                     gsubr.offset[gsubr_bias + subr],
-						                 gsubr, lsubr, stack, outline, methods, options);
+						                 gsubr, lsubr, stack, outline, methods, options, depth + 1);
 						break;
 					}
 					default: {
