@@ -146,14 +146,29 @@ jobs:
         mkdir -p bin/release-x64
         
         # Find the binary and copy it to where quick.make expects it
-        # Assuming finding one is enough
-        DUMP_BIN=$(find bin -name otfccdump | head -n 1)
-        BUILD_BIN=$(find bin -name otfccbuild | head -n 1)
+        DUMP_BIN=$(find bin -type f -name otfccdump | head -n 1)
+        BUILD_BIN=$(find bin -type f -name otfccbuild | head -n 1)
         
-        cp "$DUMP_BIN" bin/release-x64/otfccdump
-        cp "$BUILD_BIN" bin/release-x64/otfccbuild
+        echo "Found dump bin: $DUMP_BIN"
+        echo "Found build bin: $BUILD_BIN"
         
-        chmod +x bin/release-x64/otfccdump bin/release-x64/otfccbuild
+        TARGET_DIR="bin/release-x64"
+        mkdir -p "$TARGET_DIR"
+        
+        if [ "$DUMP_BIN" != "$TARGET_DIR/otfccdump" ]; then
+             cp "$DUMP_BIN" "$TARGET_DIR/otfccdump"
+        fi
+        
+        if [ "$BUILD_BIN" != "$TARGET_DIR/otfccbuild" ]; then
+             cp "$BUILD_BIN" "$TARGET_DIR/otfccbuild"
+        fi
+        
+        chmod +x "$TARGET_DIR/otfccdump" "$TARGET_DIR/otfccbuild"
+        
+        # Debug info
+        ls -l "$TARGET_DIR"
+        file "$TARGET_DIR/otfccdump" || true
+        file "$TARGET_DIR/otfccbuild" || true
         
         make -f quick.make test
 
