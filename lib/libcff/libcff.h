@@ -134,7 +134,7 @@ uint8_t cff_getStandardArity(uint32_t op);
 sds sdsget_cff_sid(uint16_t idx, cff_Index str);
 
 extern uint32_t cff_decodeCffToken(const uint8_t *start, cff_Value *val);
-extern uint32_t cff_decodeCS2Token(const uint8_t *start, cff_Value *val);
+extern uint32_t cff_decodeCS2Token(const uint8_t *start, uint32_t limit, cff_Value *val);
 
 // number, number, float
 extern caryll_Buffer *cff_encodeCffOperator(int32_t val);
@@ -155,7 +155,7 @@ void cff_mergeCS2Special(caryll_Buffer *blob, uint8_t val);
 
 extern uint8_t cff_parseSubr(uint16_t idx, uint8_t *raw, cff_Index fdarray, cff_FDSelect select, cff_Index *subr);
 void cff_parseOutline(uint8_t *data, uint32_t len, cff_Index gsubr, cff_Index lsubr, cff_Stack *stack, void *outline,
-                      cff_IOutlineBuilder methods, const otfcc_Options *options);
+                      cff_IOutlineBuilder methods, const otfcc_Options *options, uint32_t depth);
 
 // File
 extern cff_File *cff_openStream(uint8_t *data, uint32_t len, const otfcc_Options *options);

@@ -8,13 +8,13 @@ PATCH_VER = '4'
 function cbuildoptions()
 	-- Windows
 	filter "action:vs2015"
-		buildoptions { '/MP', '/Wall', '-Wno-unused-parameter', '-Qunused-arguments' }
+		buildoptions { '/MP', '/Wall' }
 	filter { "action:vs2015", "platforms:x64" }
-		buildoptions {'-Wshorten-64-to-32'}
+		buildoptions {}
 	filter "action:vs2017"
-		buildoptions { '-Wall', '-Wno-unused-parameter', '-Qunused-arguments' }
+		buildoptions { '/Wall' }
 	filter { "action:vs2017", "platforms:x64" }
-		buildoptions {'-Wshorten-64-to-32'}
+		buildoptions {}
 	filter {"system:windows", "action:ninja"}
 		buildoptions { '-Wall', '-Wextra', '-Wno-unused-parameter', '-Qunused-arguments' }
 	-- Linux / OSX
@@ -31,9 +31,9 @@ end
 
 function externcbuildoptions()
 	filter "action:vs2017"
-		buildoptions { '-Qunused-arguments', '-Wno-unused-const-variable' }
+		buildoptions { }
 	filter "action:vs2015"
-		buildoptions { '/MP', '-Qunused-arguments', '-Wno-unused-const-variable' }
+		buildoptions { '/MP' }
 	filter {"system:windows", "action:ninja"}
 		buildoptions { '-Wno-unused-parameter', '-Qunused-arguments' }
 	filter "action:gmake or action:xcode4"
@@ -49,9 +49,9 @@ end
 workspace "otfcc"
 	configurations { "release", "debug" }
 	
-	platforms { "x64", "x86" }
+	platforms { "x64", "x86", "arm64" }
 	filter "action:xcode4"
-		platforms { "x64" }
+		platforms { "x64", "arm64" }
 	filter {}
 	
 	location "build"
@@ -67,17 +67,19 @@ workspace "otfcc"
 		architecture "x86"
 	filter "platforms:x64"
 		architecture "x64"
+		xcodebuildsettings { ARCHS = "x86_64" }
+	filter "platforms:arm64"
+		xcodebuildsettings { ARCHS = "arm64" }
+		
 	filter {}
 	
 	filter "action:vs2017"
 		location "build/vs"
-		toolset "v141_clang_c2"
 		defines { '_CRT_SECURE_NO_WARNINGS', '_CRT_NONSTDC_NO_DEPRECATE' }
 		flags { "StaticRuntime" }
 		includedirs { "dep/polyfill-msvc" }
 	filter "action:vs2015"
 		location "build/vs"
-		toolset "msc-llvm-vs2014"
 		defines { '_CRT_SECURE_NO_WARNINGS', '_CRT_NONSTDC_NO_DEPRECATE' }
 		flags { "StaticRuntime" }
 		includedirs { "dep/polyfill-msvc" }

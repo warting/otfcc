@@ -442,7 +442,7 @@ static void buildOutline(glyphid_t i, cff_extract_context *context, const otfcc_
 	bc.randx = seed;
 
 	cff_parseOutline(charStringPtr, charStringLength, f->global_subr, localSubrs, &stack, &bc,
-	                 drawPass, options);
+	                 drawPass, options, 0);
 
 	// Turn deltas into absolute coordinates
 	VQ cx = iVQ.neutral(), cy = iVQ.neutral();

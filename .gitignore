@@ -34,3 +34,5 @@ _test
 
 # Makefile is for local dev only
 makefile
+
+.idea

@@ -1,0 +1,155 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    name: Build Release Assets
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            arch: x64
+            runner: ubuntu-latest
+            config: release_x64
+            artifact_name: otfcc-linux-x64
+            asset_suffix: linux-x64
+            
+          - os: linux
+            arch: arm64
+            runner: ubuntu-latest
+            config: release_arm64
+            artifact_name: otfcc-linux-arm64
+            asset_suffix: linux-arm64
+            cross_compile: true
+
+          - os: macos
+            arch: x64
+            runner: macos-latest
+            premake_cmd: ./dep/bin-osx/premake5 xcode4
+            artifact_name: otfcc-macos-x64
+            asset_suffix: macos-x64
+
+          - os: macos
+            arch: arm64
+            runner: macos-latest
+            premake_cmd: ./dep/bin-osx/premake5 xcode4
+            artifact_name: otfcc-macos-arm64
+            asset_suffix: macos-arm64
+
+          - os: windows
+            arch: x64
+            runner: windows-latest
+            platform: x64
+            artifact_name: otfcc-win64
+            asset_suffix: win64
+
+          - os: windows
+            arch: x86
+            runner: windows-latest
+            platform: Win32
+            artifact_name: otfcc-win32
+            asset_suffix: win32
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # Linux Setup
+    - name: Install Linux Deps
+      if: matrix.os == 'linux'
+      run: sudo apt-get update && sudo apt-get install -y build-essential
+
+    - name: Install Linux ARM64 Cross-Compiler
+      if: matrix.os == 'linux' && matrix.cross_compile
+      run: sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
+    - name: Build Linux
+      if: matrix.os == 'linux'
+      run: |
+        chmod +x dep/bin-linux/premake5
+        ./dep/bin-linux/premake5 gmake
+        cd build/gmake
+        if [ "${{ matrix.cross_compile }}" == "true" ]; then
+          make config=${{ matrix.config }} CC=aarch64-linux-gnu-gcc CXX=aarch64-linux-gnu-g++ AR=aarch64-linux-gnu-ar
+        else
+          make config=${{ matrix.config }}
+        fi
+
+    # macOS Setup
+    - name: Build macOS
+      if: matrix.os == 'macos'
+      run: |
+        chmod +x dep/bin-osx/premake5
+        ${{ matrix.premake_cmd }}
+        xcodebuild -workspace build/xcode/otfcc.xcworkspace -scheme otfccbuild -configuration Release
+        xcodebuild -workspace build/xcode/otfcc.xcworkspace -scheme otfccdump -configuration Release
+
+    # Windows Setup
+    - name: Setup MSBuild
+      if: matrix.os == 'windows'
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Build Windows
+      if: matrix.os == 'windows'
+      run: |
+        .\dep\bin-win\premake5.exe vs2017
+        msbuild build\vs\otfcc.sln /m /p:Configuration=Release /p:Platform=${{ matrix.platform }} /p:PlatformToolset=v143
+
+    # Packaging
+    - name: Package Artifacts
+      shell: bash
+      run: |
+        mkdir -p release_package
+        
+        # Determine file extension
+        EXT=""
+        if [ "${{ matrix.os }}" == "windows" ]; then EXT=".exe"; fi
+        
+        # Copy binaries with architecture in name for easy identification
+        # We copy both the original name and a versioned name if desired, 
+        # but for a release, usually we zip/tar them.
+        cp bin/otfccdump$EXT release_package/ || cp $(find bin -name "otfccdump$EXT" | head -n 1) release_package/
+        cp bin/otfccbuild$EXT release_package/ || cp $(find bin -name "otfccbuild$EXT" | head -n 1) release_package/
+        
+        # Archive with a name like otfcc-win64.zip or otfcc-linux-arm64.tar.gz
+        cd release_package
+        if [ "${{ matrix.os }}" == "windows" ]; then
+           7z a ../${{ matrix.artifact_name }}.zip *
+        else
+           tar -czvf ../${{ matrix.artifact_name }}.tar.gz *
+        fi
+
+    - name: Upload Artifact to Action
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: ${{ matrix.artifact_name }}.*
+
+  create-release:
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Flatten directory structure
+        run: |
+          mkdir -p release_assets
+          find artifacts -type f -exec cp {} release_assets/ \;
+          ls -R release_assets/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release_assets/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true

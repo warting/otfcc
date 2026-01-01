@@ -1,0 +1,38 @@
+FROM --platform=linux/amd64 ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs
+
+WORKDIR /app
+
+COPY . .
+
+# Build for x64
+WORKDIR /app
+# premake5 (linux x64) is already in dep/bin-linux/premake5 and matches this container's arch
+RUN chmod +x dep/bin-linux/premake5
+# We need to regenerate Makefiles because the ones on host might be different (or just to be safe)
+RUN ./dep/bin-linux/premake5 gmake
+
+WORKDIR /app/build/gmake
+RUN make config=release_x64
+
+# Test
+WORKDIR /app
+# Mock directory structure for quick.make (if needed)
+RUN ls -R bin
+# The output is likely bin/release-x64, which matches what quick.make expects.
+# Just ensure execute permissions.
+RUN chmod +x bin/release-x64/otfccdump bin/release-x64/otfccbuild
+
+CMD ["make", "-f", "quick.make", "test"]
