@@ -75,13 +75,11 @@ workspace "otfcc"
 	
 	filter "action:vs2017"
 		location "build/vs"
-		toolset "v141_clang_c2"
 		defines { '_CRT_SECURE_NO_WARNINGS', '_CRT_NONSTDC_NO_DEPRECATE' }
 		flags { "StaticRuntime" }
 		includedirs { "dep/polyfill-msvc" }
 	filter "action:vs2015"
 		location "build/vs"
-		toolset "msc-llvm-vs2014"
 		defines { '_CRT_SECURE_NO_WARNINGS', '_CRT_NONSTDC_NO_DEPRECATE' }
 		flags { "StaticRuntime" }
 		includedirs { "dep/polyfill-msvc" }
