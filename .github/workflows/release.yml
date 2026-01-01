@@ -29,14 +29,14 @@ jobs:
 
           - os: macos
             arch: x64
-            runner: macos-13
+            runner: macos-latest
             premake_cmd: ./dep/bin-osx/premake5 xcode4
             artifact_name: otfcc-macos-x64
             asset_suffix: macos-x64
 
           - os: macos
             arch: arm64
-            runner: macos-14
+            runner: macos-latest
             premake_cmd: ./dep/bin-osx/premake5 xcode4
             artifact_name: otfcc-macos-arm64
             asset_suffix: macos-arm64

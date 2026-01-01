@@ -108,10 +108,10 @@ jobs:
       matrix:
         include:
           - arch: x64
-            runner: macos-13 # Intel
+            runner: macos-latest # Apple Silicon (cross-compile to x64)
             premake_cmd: ./dep/bin-osx/premake5 xcode4
           - arch: arm64
-            runner: macos-14 # Apple Silicon
+            runner: macos-latest # Apple Silicon
             premake_cmd: ./dep/bin-osx/premake5 xcode4
 
     steps:

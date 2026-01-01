@@ -51,7 +51,7 @@ workspace "otfcc"
 	
 	platforms { "x64", "x86", "arm64" }
 	filter "action:xcode4"
-		platforms { "x64" }
+		platforms { "x64", "arm64" }
 	filter {}
 	
 	location "build"
@@ -67,7 +67,9 @@ workspace "otfcc"
 		architecture "x86"
 	filter "platforms:x64"
 		architecture "x64"
+		xcodebuildsettings { ARCHS = "x86_64" }
 	filter "platforms:arm64"
+		xcodebuildsettings { ARCHS = "arm64" }
 		
 	filter {}
 	
