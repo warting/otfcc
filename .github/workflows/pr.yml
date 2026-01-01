@@ -93,6 +93,8 @@ jobs:
            cp bin/${{ matrix.config }}/otfccbuild bin/release-x64/otfccbuild
         fi
         
+        chmod +x bin/release-x64/otfccdump bin/release-x64/otfccbuild
+        
         # Verify binary execution (via QEMU for arm64)
         ./bin/release-x64/otfccdump --version
         
@@ -150,6 +152,8 @@ jobs:
         
         cp "$DUMP_BIN" bin/release-x64/otfccdump
         cp "$BUILD_BIN" bin/release-x64/otfccbuild
+        
+        chmod +x bin/release-x64/otfccdump bin/release-x64/otfccbuild
         
         make -f quick.make test
 
