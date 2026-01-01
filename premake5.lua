@@ -8,13 +8,13 @@ PATCH_VER = '4'
 function cbuildoptions()
 	-- Windows
 	filter "action:vs2015"
-		buildoptions { '/MP', '/Wall', '-Wno-unused-parameter', '-Qunused-arguments' }
+		buildoptions { '/MP', '/Wall' }
 	filter { "action:vs2015", "platforms:x64" }
-		buildoptions {'-Wshorten-64-to-32'}
+		buildoptions {}
 	filter "action:vs2017"
-		buildoptions { '-Wall', '-Wno-unused-parameter', '-Qunused-arguments' }
+		buildoptions { '/Wall' }
 	filter { "action:vs2017", "platforms:x64" }
-		buildoptions {'-Wshorten-64-to-32'}
+		buildoptions {}
 	filter {"system:windows", "action:ninja"}
 		buildoptions { '-Wall', '-Wextra', '-Wno-unused-parameter', '-Qunused-arguments' }
 	-- Linux / OSX
@@ -31,9 +31,9 @@ end
 
 function externcbuildoptions()
 	filter "action:vs2017"
-		buildoptions { '-Qunused-arguments', '-Wno-unused-const-variable' }
+		buildoptions { }
 	filter "action:vs2015"
-		buildoptions { '/MP', '-Qunused-arguments', '-Wno-unused-const-variable' }
+		buildoptions { '/MP' }
 	filter {"system:windows", "action:ninja"}
 		buildoptions { '-Wno-unused-parameter', '-Qunused-arguments' }
 	filter "action:gmake or action:xcode4"
