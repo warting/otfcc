@@ -17,7 +17,7 @@
 	}
 #define caryll_VectorInterfaceTypeName(__TV) const struct __caryll_vectorinterface_##__TV
 #define caryll_VectorInterfaceTrait(__TV, __T)                                                     \
-	caryll_RT(__TV)                                                                                \
+	caryll_RT(__TV);                                                                               \
 	void (*initN)(MODIFY __TV * arr, size_t n);                                                    \
 	void (*initCapN)(MODIFY __TV * arr, size_t n);                                                 \
 	__TV *(*createN)(size_t n);                                                                    \
@@ -28,7 +28,7 @@
 	__T (*pop)(MODIFY __TV * arr);                                                                 \
 	void (*disposeItem)(MODIFY __TV * arr, size_t n);                                              \
 	void (*filterEnv)(MODIFY __TV * arr, bool (*fn)(const __T *x, void *env), void *env);          \
-	void (*sort)(MODIFY __TV * arr, int (*fn)(const __T *a, const __T *b));
+	void (*sort)(MODIFY __TV * arr, int (*fn)(const __T *a, const __T *b))
 
 #define caryll_VectorInterface(__TV, __T)                                                          \
 	caryll_VectorInterfaceTypeName(__TV) {                                                         \
