@@ -54,8 +54,19 @@ jobs:
         cd ../..
         BIN_CONFIG=$(echo "${{ matrix.config }}" | sed 's/_/-/')
         mkdir -p bin/release-x64
-        cp bin/$BIN_CONFIG/otfccdump bin/release-x64/otfccdump
-        cp bin/$BIN_CONFIG/otfccbuild bin/release-x64/otfccbuild
+        
+        SOURCE_DUMP="bin/$BIN_CONFIG/otfccdump"
+        SOURCE_BUILD="bin/$BIN_CONFIG/otfccbuild"
+        DEST_DUMP="bin/release-x64/otfccdump"
+        DEST_BUILD="bin/release-x64/otfccbuild"
+        
+        if [ "$SOURCE_DUMP" != "$DEST_DUMP" ]; then
+             cp "$SOURCE_DUMP" "$DEST_DUMP"
+        fi
+        if [ "$SOURCE_BUILD" != "$DEST_BUILD" ]; then
+             cp "$SOURCE_BUILD" "$DEST_BUILD"
+        fi
+        
         chmod +x bin/release-x64/otfccdump bin/release-x64/otfccbuild
         ./bin/release-x64/otfccdump --version
         make -f quick.make test
