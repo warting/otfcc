@@ -334,7 +334,7 @@ static double callback_nopgetrand(void *context) {
 			logWarning("[libcff] Stack cannot provide enough parameters for %s (%04x). This "      \
 			           "operation is ignored.\n",                                                  \
 			           #op, op);                                                                   \
-			break;                                                                                 \
+			return;                                                                                 \
 		}                                                                                          \
 	}
 
