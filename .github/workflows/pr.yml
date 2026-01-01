@@ -15,10 +15,10 @@ jobs:
         include:
           - arch: x64
             runner: ubuntu-latest
-            config: release-x64
+            config: release_x64
           - arch: arm64
             runner: ubuntu-latest
-            config: release-arm64
+            config: release_arm64
             use_qemu: true
 
     steps:
@@ -77,7 +77,10 @@ jobs:
         # Workaround: Symlink the built binary to the expected location if it differs
         # Or, ideally, use the correct binary.
         
-        BIN_DIR="bin/${{ matrix.config }}"
+        # Convert config (release_x64) to directory name (release-x64)
+        BIN_CONFIG=$(echo "${{ matrix.config }}" | sed 's/_/-/')
+        
+        BIN_DIR="bin/$BIN_CONFIG"
         # Normalize path separators if needed (linux uses /)
         
         # If we are on ARM64, quick.make's hardcoded paths will fail. 
@@ -89,8 +92,8 @@ jobs:
         # Let's see if we can trick it by symlinking.
         mkdir -p bin/release-x64
         if [ "${{ matrix.arch }}" != "x64" ]; then
-           cp bin/${{ matrix.config }}/otfccdump bin/release-x64/otfccdump
-           cp bin/${{ matrix.config }}/otfccbuild bin/release-x64/otfccbuild
+           cp bin/$BIN_CONFIG/otfccdump bin/release-x64/otfccdump
+           cp bin/$BIN_CONFIG/otfccbuild bin/release-x64/otfccbuild
         fi
         
         chmod +x bin/release-x64/otfccdump bin/release-x64/otfccbuild
