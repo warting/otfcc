@@ -18,20 +18,21 @@ WORKDIR /app
 COPY . .
 
 # Build for x64
-WORKDIR /app/build/gmake
+WORKDIR /app
 # premake5 (linux x64) is already in dep/bin-linux/premake5 and matches this container's arch
-RUN chmod +x ../../dep/bin-linux/premake5
+RUN chmod +x dep/bin-linux/premake5
 # We need to regenerate Makefiles because the ones on host might be different (or just to be safe)
-RUN ../../dep/bin-linux/premake5 gmake
+RUN ./dep/bin-linux/premake5 gmake
 
+WORKDIR /app/build/gmake
 RUN make config=release_x64
 
 # Test
 WORKDIR /app
-# Mock directory structure for quick.make
-RUN mkdir -p bin/release-x64 && \
-    cp bin/release_x64/otfccdump bin/release-x64/otfccdump && \
-    cp bin/release_x64/otfccbuild bin/release-x64/otfccbuild && \
-    chmod +x bin/release-x64/otfccdump bin/release-x64/otfccbuild
+# Mock directory structure for quick.make (if needed)
+RUN ls -R bin
+# The output is likely bin/release-x64, which matches what quick.make expects.
+# Just ensure execute permissions.
+RUN chmod +x bin/release-x64/otfccdump bin/release-x64/otfccbuild
 
 CMD ["make", "-f", "quick.make", "test"]

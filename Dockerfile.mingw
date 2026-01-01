@@ -16,10 +16,11 @@ WORKDIR /app
 COPY . .
 
 # Build for Windows x64 using MinGW
-WORKDIR /app/build/gmake
-RUN chmod +x ../../dep/bin-linux/premake5
-RUN ../../dep/bin-linux/premake5 gmake
+WORKDIR /app
+RUN chmod +x dep/bin-linux/premake5
+RUN ./dep/bin-linux/premake5 gmake
 
+WORKDIR /app/build/gmake
 # Build release_x64 but with MinGW compiler
 # We override CC and CXX to use the MinGW cross-compiler
 RUN make config=release_x64 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ AR=x86_64-w64-mingw32-ar
@@ -30,9 +31,9 @@ RUN make config=release_x86 CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++ AR=
 # Package
 WORKDIR /app
 RUN mkdir -p dist/win64 dist/win32 && \
-    cp bin/release_x64/otfccdump.exe dist/win64/ && \
-    cp bin/release_x64/otfccbuild.exe dist/win64/ && \
-    cp bin/release_x86/otfccdump.exe dist/win32/ && \
-    cp bin/release_x86/otfccbuild.exe dist/win32/
+    cp bin/release-x64/otfccdump.exe dist/win64/ && \
+    cp bin/release-x64/otfccbuild.exe dist/win64/ && \
+    cp bin/release-x86/otfccdump.exe dist/win32/ && \
+    cp bin/release-x86/otfccbuild.exe dist/win32/
 
 CMD ["ls", "-R", "dist"]
